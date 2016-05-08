@@ -8,6 +8,11 @@ def parse_labels(string):
     #print (gender, int(age), occupation, region)
     return (gender, int(age), occupation, region)
 
+def isInt_try(v):
+    try:     i = int(v)
+    except:  return False
+    return True
+
 to_remove = ["<blog>" "</blog>" "<date>" "</date>"]
 
 def strip(string):
@@ -15,14 +20,14 @@ def strip(string):
     for x in to_remove:
         if x in string:
             return None
-    for x in '''*,.!?:()'{}#@$%^&"''':
+    for x in '''*,.!?:()-+\/'{}#@$%^&"''':
         string = string.replace(x, " ")
     return string
 
 def read_xml(xml_files):
     # (gender, age, occupation, blogs)
+    freqCounts = {}
     for fxml in xml_files:
-        freqCounts = {}
         labels = parse_labels(fxml.split("/")[-1])
         fxml_handle = open(fxml, "r")
         for line in fxml_handle:
@@ -32,23 +37,40 @@ def read_xml(xml_files):
             for word in line.split(" "):
                 word = word.strip(" ")
                 if len(word) <= 1: continue
+                if isInt_try(word): continue
                 if word in freqCounts: freqCounts[word] += 1
                 else: freqCounts[word] = 1
-
-        #print "for XML file:", fxml
-        for word in freqCounts:
-            print word + ":" + str( freqCounts[word])
         fxml_handle.close()
+        #print "for XML file:", fxml
+    for word in freqCounts:
+        print word + ":" + str( freqCounts[word])
 
+def read_truth(truth_file_path):
+    labels_map = {}
+    gender_map = {"MALE" :0, "FEMALE":1}
+    age_map    = {"18-24":0, "25-34":1, "35-49":2, "50-64":3, "65-xx":4}
+    fh = open (truth_file_path, "r")
+    for line in fh:
+        line = line.strip("\n")
+        identity, gender, age = line.split(":::")
+        gender, age = gender_map[gender], age_map[age]
+        labels_map[identity] = (gender, age)
+    fh.close()
+    return labels_map
 
 def main(options, in_filename, out_filename):
     assert os.path.exists(in_filename), "xml_data not exists."
+    '''
     if os.path.isdir(in_filename):
         xml_files = [ in_filename+f for f in os.listdir(in_filename) \
                  if os.path.isfile(in_filename+f) and f[-4:] == ".xml" ]
     elif os.path.isfile(in_filename):
         xml_files = [in_filename]
     xml_data = read_xml (xml_files)
+    '''
+    labels_map = read_truth(in_filename)
+    for x in labels_map:
+        print x, labels_map[x]
 
 
 if __name__ == "__main__":
