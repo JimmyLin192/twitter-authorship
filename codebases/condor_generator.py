@@ -62,11 +62,11 @@ def generate_liblinear_condor():
 def generate_libsvm_condor():
     string = ""
     param = {"log_path": "../results/libsvm"}
-    for s in range(8):
+    for s in range(2):
         param["s"] = s
         for c in range(-1, 2):
             param["c"] = c
-            for e in range(-7, -2):
+            for e in range(-7, -2, 2):
                 param["e"] = e
                 for t in range(4):
                     param["t"] = t
