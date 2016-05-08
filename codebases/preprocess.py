@@ -5,13 +5,14 @@ from sklearn.feature_extraction import DictVectorizer
 
 def parse_labels(string):
     _, gender, age, occupation, region, _ = string.split(".")
-    print (gender, int(age), occupation, region)
+    #print (gender, int(age), occupation, region)
     return (gender, int(age), occupation, region)
 
+to_remove = ["<blog>" "</blog>" "<date>" "</date>"]
 
 def strip(string):
     string = string.lower()
-    for x in ["<blog>" "</blog>" "<date>" "</date>"]:
+    for x in to_remove:
         if x in string:
             return None
     for x in '''*,.!?:()'{}#@$%^&"''':
@@ -34,7 +35,7 @@ def read_xml(xml_files):
                 if word in freqCounts: freqCounts[word] += 1
                 else: freqCounts[word] = 1
 
-        print "for XML file:", fxml
+        #print "for XML file:", fxml
         for word in freqCounts:
             print word + ":" + str( freqCounts[word])
         fxml_handle.close()
