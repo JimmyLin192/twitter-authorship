@@ -76,11 +76,11 @@ def read_xml(xml_files):
             all_tweets.append(tweet)
         id2tweets[user_id] = all_tweets
 
-    for user in id2tweets:
-        print user + ":", len(id2tweets[user])
+    #for user in id2tweets:
+    #    print user + ":", len(id2tweets[user])
 
 def read_truth(truth_file_path):
-    labels_map = {}
+    id2labels = {}
     gender_map = {"MALE" :0, "FEMALE":1}
     age_map    = {"18-24":0, "25-34":1, "35-49":2, "50-64":3, "65-xx":4}
     fh = open (truth_file_path, "r")
@@ -88,23 +88,23 @@ def read_truth(truth_file_path):
         line = line.strip("\n")
         identity, gender, age = line.split(":::")
         gender, age = gender_map[gender], age_map[age]
-        labels_map[identity] = (gender, age)
+        id2labels[identity] = (gender, age)
     fh.close()
-    return labels_map
+    return id2labels
 
 def main(options, truth_file_path, xml_dir, out_filename):
+    # input processing
     assert os.path.exists(xml_dir), "xml_data not exists."
     if os.path.isdir(xml_dir):
         xml_files = [ os.path.join(xml_dir,f) for f in os.listdir(xml_dir) \
                  if os.path.isfile(os.path.join(xml_dir,f)) and f[-4:] == ".xml" ]
     elif os.path.isfile(xml_dir):
         xml_files = [ xml_dir ]
-    xml_data = read_xml (xml_files)
-    '''
-    labels_map = read_truth(truth_file_path)
-    for x in labels_map:
-        print x, labels_map[x]
-    '''
+    # read xml and truth file(s)
+    id2tweets = read_xml (xml_files)
+    id2labels = read_truth (truth_file_path)
+    # 
+    = process_tweets (id2tweets)
 
 
 if __name__ == "__main__":
