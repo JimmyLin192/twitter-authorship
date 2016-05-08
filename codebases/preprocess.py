@@ -100,8 +100,9 @@ def get_freq_counts (id2tweets):
     id2localFreq = {}
     for user_id in id2tweets:
         all_tweets = id2tweets[user_id]
-        local_freq = {}
+        all_tweets_freqs = []
         for tweet in all_tweets:
+            local_freq = {}
             tweet = strip(tweet)
             words = tweet.split(" ")
             for word in words:
@@ -114,8 +115,9 @@ def get_freq_counts (id2tweets):
                 else: freqCounts[word] = 1
                 if word in local_freq: local_freq[word] += 1
                 else: local_freq[word] = 1
-        #
-        id2localFreq[user_id] = local_freq
+            #
+            all_tweets_freqs.append(local_freq)
+        id2localFreq[user_id] = all_tweets_freqs
     #
     return freqCounts, id2localFreq
 
@@ -144,16 +146,15 @@ def main(options, truth_file_path, xml_dir, out_filename):
     
     out_handle = open(out_filename, "w+")
     for user_id in id2localFreq: 
-        instance_str = str(id2labels[user_id][0])
-        local_freq = id2localFreq[user_id]
-        pairs = []
-        for word in local_freq:
-            pairs.append((word2index[word], local_freq[word]))
-        pairs.sort(key=lambda x: x[0])
-        for x in pairs:
-            instance_str += " %d:%d" % x
-        #
-        out_handle.writelines([instance_str, "\n"])
+        all_tweets_freqs = id2localFreq[user_id]
+        for tweet_freq in all_tweets_freqs:
+            pairs = []
+            for word in tweet_freq:
+                pairs.append((word2index[word], tweet_freq[word]))
+            pairs.sort(key=lambda x: x[0])
+            instance_str = str(id2labels[user_id][0])
+            for index,value in pairs: instance_str += " %d:%d" % (index, value)
+            out_handle.writelines([instance_str, "\n"])
     out_handle.close()
 
 if __name__ == "__main__":
