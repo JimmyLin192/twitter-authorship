@@ -95,10 +95,12 @@ def read_truth(truth_file_path):
     fh.close()
     return id2labels
 
-def process_tweets (id2tweets):
+def get_freq_counts (id2tweets):
     freqCounts = {}
+    id2localFreq = {}
     for user_id in id2tweets:
         all_tweets = id2tweets[user_id]
+        local_freq = {}
         for tweet in all_tweets:
             tweet = strip(tweet)
             words = tweet.split(" ")
@@ -107,10 +109,18 @@ def process_tweets (id2tweets):
                 if not is_word_all_character(word): continue
                 if len(word) <= 1 or len(word) > 20: continue
                 if isInt_try(word): continue
+                #
                 if word in freqCounts: freqCounts[word] += 1
                 else: freqCounts[word] = 1
+                if word in local_freq: local_freq[word] += 1
+                else: local_freq[word] = 1
+        #
+        id2localFreq[user_id] = local_freq
     #
-    return freqCounts
+    return freqCounts, id2localFreq
+
+def get_string (word):
+    return u''.join((word,":")).encode('utf-8').strip()
 
 def main(options, truth_file_path, xml_dir, out_filename):
     # input processing
@@ -125,11 +135,22 @@ def main(options, truth_file_path, xml_dir, out_filename):
     id2tweets = read_xml (xml_files)
     id2labels = read_truth (truth_file_path)
 
-    # 
-    freqCounts = process_tweets (id2tweets)
+    freqCounts, id2localFreq = get_freq_counts (id2tweets)
+    word2index, index = {}, 1
     for word in freqCounts:
-        print u''.join((word,":")).encode('utf-8').strip(), freqCounts[word]
-
+        word2index.update({word:index})
+        index += 1
+    # get unigram features
+    
+    out_handle = open(out_filename, "w+")
+    for user_id in id2localFreq: 
+        instance_str = str(id2labels[user_id][0])
+        local_freq = id2localFreq[user_id]
+        for word in local_freq:
+            instance_str += " %d:%d" % (word2index[word], local_freq[word])
+        #
+        out_handle.writelines([instance_str, "\n"])
+    out_handle.close()
 
 if __name__ == "__main__":
     usage = "usage: python preprocess.py (options) [truth_file] [xml_dir] [out_file]"
