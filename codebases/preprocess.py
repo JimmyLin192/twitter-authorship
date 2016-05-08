@@ -146,8 +146,12 @@ def main(options, truth_file_path, xml_dir, out_filename):
     for user_id in id2localFreq: 
         instance_str = str(id2labels[user_id][0])
         local_freq = id2localFreq[user_id]
+        pairs = []
         for word in local_freq:
-            instance_str += " %d:%d" % (word2index[word], local_freq[word])
+            pairs.append((word2index[word], local_freq[word]))
+        pairs.sort(key=lambda x: x[0])
+        for x in pairs:
+            instance_str += " %d:%d" % x
         #
         out_handle.writelines([instance_str, "\n"])
     out_handle.close()
