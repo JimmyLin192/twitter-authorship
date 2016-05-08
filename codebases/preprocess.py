@@ -15,16 +15,18 @@ def isInt_try(v):
     except:  return False
     return True
 
-to_remove = ["<blog>" "</blog>" "<date>" "</date>"]
-
 def strip(string):
     string = string.lower()
-    for x in to_remove:
-        if x in string:
-            return None
-    for x in '''*,.!?:()-+\/'{}#@$%^&"''':
+    for x in '''*,.!?:()-+\/'{}[]#@$%^&"''':
         string = string.replace(x, " ")
     return string
+
+def is_word_all_character (string):
+    # check if all character is a letter
+    for x in string:
+        if not x.isalpha(): 
+            return False 
+    return True
 
 '''
 def read_xml(xml_files):
@@ -78,6 +80,7 @@ def read_xml(xml_files):
 
     #for user in id2tweets:
     #    print user + ":", len(id2tweets[user])
+    return id2tweets
 
 def read_truth(truth_file_path):
     id2labels = {}
@@ -92,19 +95,40 @@ def read_truth(truth_file_path):
     fh.close()
     return id2labels
 
+def process_tweets (id2tweets):
+    freqCounts = {}
+    for user_id in id2tweets:
+        all_tweets = id2tweets[user_id]
+        for tweet in all_tweets:
+            tweet = strip(tweet)
+            words = tweet.split(" ")
+            for word in words:
+                word = word.strip(" ")
+                if not is_word_all_character(word): continue
+                if len(word) <= 1 or len(word) > 20: continue
+                if isInt_try(word): continue
+                if word in freqCounts: freqCounts[word] += 1
+                else: freqCounts[word] = 1
+    #
+    return freqCounts
+
 def main(options, truth_file_path, xml_dir, out_filename):
     # input processing
     assert os.path.exists(xml_dir), "xml_data not exists."
     if os.path.isdir(xml_dir):
         xml_files = [ os.path.join(xml_dir,f) for f in os.listdir(xml_dir) \
-                 if os.path.isfile(os.path.join(xml_dir,f)) and f[-4:] == ".xml" ]
+                     if os.path.isfile(os.path.join(xml_dir,f)) and f[-4:] == ".xml" ]
     elif os.path.isfile(xml_dir):
         xml_files = [ xml_dir ]
+
     # read xml and truth file(s)
     id2tweets = read_xml (xml_files)
     id2labels = read_truth (truth_file_path)
+
     # 
-    = process_tweets (id2tweets)
+    freqCounts = process_tweets (id2tweets)
+    for word in freqCounts:
+        print u''.join((word,":")).encode('utf-8').strip(), freqCounts[word]
 
 
 if __name__ == "__main__":
