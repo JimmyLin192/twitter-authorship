@@ -6,7 +6,7 @@ do
     do
         for e in $(seq -10 -3); 
         do 
-            ../libraries/liblinear-2.1/train -s $s -c $c -e 1e$e -v 10 -q raw_features_scale > ../results/_s${s}_c${c}_e${e}.result &
+            ../libraries/liblinear-2.1/train -s $s -c $c -e 1e$e -v 10 -q raw_features_scale > ../results/unscaled/_s${s}_c${c}_e${e}.result &
         done
     done
 done
