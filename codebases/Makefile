@@ -1,5 +1,5 @@
 
 push:
-	git add Makefile 
+	git add Makefile preprocess.py
 	git commit
 	git push
