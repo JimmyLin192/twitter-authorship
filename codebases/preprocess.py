@@ -163,25 +163,10 @@ def get_freq_counts (id2tweets):
 def get_string (word):
     return u''.join((word,":")).encode('utf-8').strip()
 
-def main(options, truth_file_path, xml_dir, out_filename):
-    # input processing
-    assert os.path.exists(xml_dir), "xml_data not exists."
-    if os.path.isdir(xml_dir):
-        xml_files = [ os.path.join(xml_dir,f) for f in os.listdir(xml_dir) \
-                     if os.path.isfile(os.path.join(xml_dir,f)) and f[-4:] == ".xml" ]
-    elif os.path.isfile(xml_dir):
-        xml_files = [ xml_dir ]
+def info_gain_age (id2localFreq,id2labels,freqCounts):
 
-    # read xml and truth file(s)
-    id2tweets = read_xml (xml_files)
-    id2labels = read_truth (truth_file_path)
-
-    freqCounts, id2localFreq, posfreqCounts, id2posFreq, extrafreqCounts, id2extraFreq = get_freq_counts (id2tweets)
-    
-    
     age_category = [0, 0, 0, 0, 0]
     word_category = {} #{(word:[c0 c1 c2 c3 c4])}
-    
     for user_id in id2localFreq:
         age = id2labels[user_id][1]    
         for tweet in id2localFreq[user_id]:
@@ -212,17 +197,87 @@ def main(options, truth_file_path, xml_dir, out_filename):
         ig[word] = sum
         
     sorted_ig = sorted(ig.items(),key=lambda x: -x[1])
+    return sorted_ig
+
+def info_gain_gender (id2localFreq,id2labels,freqCounts):
+
+    gender_category = [0, 0]
+    word_category = {} #{(word:[c0 c1])}
+    for user_id in id2localFreq:
+        gender = id2labels[user_id][0]    
+        for tweet in id2localFreq[user_id]:
+            for word in tweet:
+                gender_category[gender] += tweet[word]
+                if word in word_category: word_category[word][gender] += tweet[word]
+                else:
+                    cat = [0, 0]
+                    cat[gender] = tweet[word]
+                    word_category[word] = cat
+        
+    ig = {}
+    total_words = 0
+    for word in freqCounts:
+        total_words += freqCounts[word]
     
-    # get unigram features
+    for word in word_category:
+        sum = 0.0;
+        p_t = freqCounts[word]/total_words
+        p_not_t = 1 - p_t
+        for i in range(2):
+            p = gender_category[i]/total_words
+            sum -= p*log(p)
+            p2 = word_category[word][i]/freqCounts[word]
+            sum += p_t*p2*log(p2)
+            p3 = (gender_category[i]-word_category[word][i])/(total_words-freqCounts[word])
+            sum += p_not_t*p3*log(p3)
+        ig[word] = sum
+        
+    sorted_ig = sorted(ig.items(),key=lambda x: -x[1])
+    return sorted_ig
+
+def main(options, truth_file_path, xml_dir, out_filename):
+    # input processing
+    assert os.path.exists(xml_dir), "xml_data not exists."
+    if os.path.isdir(xml_dir):
+        xml_files = [ os.path.join(xml_dir,f) for f in os.listdir(xml_dir) \
+                     if os.path.isfile(os.path.join(xml_dir,f)) and f[-4:] == ".xml" ]
+    elif os.path.isfile(xml_dir):
+        xml_files = [ xml_dir ]
+
+    # read xml and truth file(s)
+    id2tweets = read_xml (xml_files)
+    id2labels = read_truth (truth_file_path)
+
+    freqCounts, id2localFreq, posfreqCounts, id2posFreq, extrafreqCounts, id2extraFreq = get_freq_counts (id2tweets)
+    
     word2index, index = {}, 1
-    for word in sorted_ig:
-        if index == 1001: #only use the top 1000 unigrams based on information gain
-            break
+    sorted_ig = {}
+
+    if (options.AGE and options.INFO_GAIN):
+        sorted_ig = info_gain_age(id2localFreq,id2labels,freqCounts)
+        for word in sorted_ig:
+            if index == 1001: #only use the top 1000 unigrams based on information gain
+                break
         word2index.update({word:index})
         index += 1
+
+    elif (options.GENDER and options.INFO_GAIN):
+        sorted_ig = info_gain_gender(id2localFreq,id2labels,freqCounts)
+        for word in sorted_ig:
+            if index == 1001: #only use the top 1000 unigrams based on information gain
+                break
+        word2index.update({word:index})
+        index += 1
+
+    else:
+        for word in freqCounts:
+            word2index.update({word:index})
+            index += 1
     
-    for word in sorted_ig:
-        print(word,': ',str(sorted_ig[word]),'\n')
+    # get unigram features
+    
+    #for word in sorted_ig:
+    #    print(word,': ',str(sorted_ig[word]),'\n')
     
     # get unigram pos features  
     tag2index = {}
@@ -251,7 +306,7 @@ def main(options, truth_file_path, xml_dir, out_filename):
                 if word in word2index:
                     pairs.append((word2index[word], tweet_freq[word]))
             pairs.sort(key=lambda x: x[0])
-            instance_str[tweet_count] = str(id2labels[user_id][1])
+            instance_str[tweet_count] = str(id2labels[user_id][0])
             for index,value in pairs: instance_str[tweet_count] += " %d:%d" % (index, value)
             tweet_count = tweet_count + 1
             
