@@ -271,13 +271,14 @@ def main(options, truth_file_path, xml_dir, out_filename):
             for feat in extra_freq:
                 pairs.append((feat2index[feat], extra_freq[feat]))
             pairs.sort(key=lambda x: x[0])
+
             #instance_str[tweet_count] = str(id2labels[user_id][1])
             for index,value in pairs: instance_str[tweet_count] += " %d:%d" % (index, value)
             tweet_count = tweet_count + 1
             
         for s in instance_str:
             out_handle.writelines([s, "\n"])
-            
+
     out_handle.close()
 
 if __name__ == "__main__":
