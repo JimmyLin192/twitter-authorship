@@ -1,0 +1,24 @@
+
+##################################################################
+universe = vanilla
+
+Initialdir = /u/mrmooshy/cs388/final/twitter-authorship/codebases
+Executable = /usr/bin/python
+
++Group   = "GRAD"
++Project = "INSTRUCTIONAL"
++ProjectDescription = "CS388 Final Project"
+
+Log = features_pos4.log
+
+Notification = complete
+Notify_user = mrmooshy2@gmail.com
+
+Arguments = preprocess.py ../datasets/pan16-eng/truth.txt ../datasets/pan16-eng/ fixed_feature_pos_reduced_extra_features
+
+Output = features_pos4.result
+Error  = features_pos4.err
+Queue 1
+
+
+##################################################################
