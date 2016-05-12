@@ -291,7 +291,7 @@ def main(options, truth_file_path, xml_dir, out_filename):
                 label_str = str(id2labels[user_id][0])
             else:
                 label_str = str(id2labels[user_id][1])
-                
+
             instance_str[tweet_count] = label_str
 
             for index,value in pairs: instance_str[tweet_count] += " %d:%d" % (index, value)
@@ -330,6 +330,8 @@ if __name__ == "__main__":
                       default=False, help="option to output age as labels.")
     parser.add_option("-g", "--gender", action="store_true", dest="GENDER", \
                       default=False, help="option to output gender as labels.")
+    parser.add_option("-i", "--info-gain", action="store_true", dest="INFO_GAIN", \
+                      default=False, help="option to use info_gain to filter features.")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose", help="verbose")
     (options, args) = parser.parse_args()
     if len(args) != 3: 
