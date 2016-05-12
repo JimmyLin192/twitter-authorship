@@ -19,12 +19,14 @@ Repository
 pan16-author-profiling-training-dataset     Raw dataset with user information
 pan16-author-profiling-twitter-downloader   twitter downloader for user information
 
+
 preprocess.py   Feature extraction
 get_stats.py    Explore the dataset
 condor_generator.py  Condor task description generator
 
 libraries/liblinear-2.1
 libraries/libsvm-3.21
+libraries/nltk_data 
 
 Usage 
 ---------------------------------
@@ -43,4 +45,10 @@ statistics will be output to stdout.
 
     python preprocess.py [truth.txt] [xml_dir] [out_features]
 
+3. run liblinear (also see codebases/gender.linear.condor)
 
+    train -s $s -c $c -e $e [input_features] (model_file)
+
+4. run svm scaling
+    
+    svm-scale -l 0 [unscaled_input] > [scaled_output]
