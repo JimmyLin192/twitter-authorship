@@ -33,28 +33,6 @@ def is_word_all_character (string):
             return False 
     return True
 
-'''
-def read_xml(xml_files):
-    # (gender, age, occupation, blogs)
-    freqCounts = {}
-    for fxml in xml_files:
-        #labels = parse_labels(fxml.split("/")[-1])
-        fxml_handle = open(fxml, "r")
-        for line in fxml_handle:
-            if len(line) <= 1: continue
-            line = strip(line)
-            if line is None: continue
-            for word in line.split(" "):
-                word = word.strip(" ")
-                if len(word) <= 1: continue
-                if isInt_try(word): continue
-                if word in freqCounts: freqCounts[word] += 1
-                else: freqCounts[word] = 1
-        fxml_handle.close()
-        #print "for XML file:", fxml
-    for word in freqCounts:
-        print word + ":" + str( freqCounts[word])
-'''
 class MLStripper(HTMLParser):
     def __init__(self):
         self.reset()
@@ -251,7 +229,11 @@ def main(options, truth_file_path, xml_dir, out_filename):
                 if word in word2index:
                     pairs.append((word2index[word], tweet_freq[word]))
             pairs.sort(key=lambda x: x[0])
-            instance_str[tweet_count] = str(id2labels[user_id][1])
+            if options.GENDER:
+                label_str = str(id2labels[user_id][0])
+            else:
+                label_str = str(id2labels[user_id][1])
+            instance_str[tweet_count] = label_str
             for index,value in pairs: instance_str[tweet_count] += " %d:%d" % (index, value)
             tweet_count = tweet_count + 1
             
@@ -284,12 +266,11 @@ def main(options, truth_file_path, xml_dir, out_filename):
 if __name__ == "__main__":
     usage = "usage: python preprocess.py (options) [truth_file] [xml_dir] [out_file]"
     parser = OptionParser(usage=usage)
-    parser.add_option("-b", "--bags-of-words", action="store_true", dest="BOG", \
-                      default=False, help="option to turn on bags-of-words feature representation.")
-    parser.add_option("-t", "--tf-idf", action="store_true", dest="TF_IDF", \
-                      default=False, help="option to turn on loop tiling.")
+    parser.add_option("-a", "--age", action="store_true", dest="AGE", \
+                      default=False, help="option to output age as labels.")
+    parser.add_option("-g", "--gender", action="store_true", dest="GENDER", \
+                      default=False, help="option to output gender as labels.")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose", help="verbose")
-    parser.add_option("", "--mini", action="store_true", dest="mini", help="mini")
     (options, args) = parser.parse_args()
     if len(args) != 3: 
         parser.print_help()
@@ -297,4 +278,5 @@ if __name__ == "__main__":
     truth_file_path = args[0]
     xml_dir = args[1]
     out_filename = args[2]
+    assert options.AGE != options.GENDER, "one of -a and -g should be specified."
     main(options, truth_file_path, xml_dir, out_filename)
