@@ -152,7 +152,7 @@ def main(options, truth_file_path, xml_dir, out_filename):
             for word in tweet_freq:
                 pairs.append((word2index[word], tweet_freq[word]))
             pairs.sort(key=lambda x: x[0])
-            instance_str = str(id2labels[user_id][0])
+            instance_str = str(id2labels[user_id][1])
             for index,value in pairs: instance_str += " %d:%d" % (index, value)
             out_handle.writelines([instance_str, "\n"])
     out_handle.close()
